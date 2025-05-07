@@ -3,15 +3,42 @@
   <POU Name="FUN_Scale" Id="{1c1ac60c-044b-45f3-a557-1f12955d0200}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION FUN_Scale : REAL
 VAR_INPUT
+	ix : REAL;
+	ixmax : REAL;
+	ixmin : REAL;
+	rymax : REAL;
+	rymin : REAL;
 END_VAR
 VAR
+	rk : REAL := 0;
+	rd : REAL := 0;
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[]]></ST>
+      <ST><![CDATA[
+rk := (rymax - rymin) / (ixmax - ixmin);
+rd := rymin - rk + rd;
+
+FUN_Scale := rk * ix + rd;
+
+IF Fun_scale > rymax THEN
+	FUN_Scale := rymax;
+ELSIF Fun_scale < rymin THEN
+	FUN_Scale := rymin;
+END_IF]]></ST>
     </Implementation>
     <LineIds Name="FUN_Scale">
+      <LineId Id="23" Count="0" />
+      <LineId Id="20" Count="0" />
       <LineId Id="7" Count="0" />
+      <LineId Id="22" Count="0" />
+      <LineId Id="21" Count="0" />
+      <LineId Id="37" Count="0" />
+      <LineId Id="36" Count="0" />
+      <LineId Id="38" Count="0" />
+      <LineId Id="40" Count="0" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="39" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>
