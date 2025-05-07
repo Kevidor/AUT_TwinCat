@@ -1,0 +1,84 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="MAIN" Id="{548732a1-9ded-4471-a302-66e7b753eacc}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAIN
+VAR
+	fbAbfullmodul : FB_Abfullmodul;
+	fbStatusAmpel : FB_Ampelstatus;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IFC_HW.ax_BandMotor.ReadStatus();
+IFC_HW.ax_Extruder1.ReadStatus();
+IFC_HW.ax_Extruder2.ReadStatus();
+IFC_HW.ax_Extruder3.ReadStatus();
+(*
+fbVereinzelung(
+	bEnable:= IFC_HW.bEnable, 
+	bExecute:= IFC_HW.bExecute, 
+	bSensor1:= IFC_HW.bEinzelSens1, 
+	bSensor2:= IFC_HW.bEinzelSens2, 
+	bSensor3:= IFC_HW.bEinzelSens3, 
+	bSensor4:= IFC_HW.bBandSens1, 
+	eState=> fbStatusAmpel.eState, 
+	bGate1=> fbEZylinder1.bGate, 
+	bGate2=> fbEZylinder2.bGate);
+
+fbEZylinder1(bGate:= , bError:= , bR1=> IFC_HW.bR1AKT1, bR2=> IFC_HW.bR2AKT1);
+fbEZylinder2(bGate:= , bError:= , bR1=> IFC_HW.bR1AKT2, bR2=> IFC_HW.bR2AKT2);
+
+fbForderband(
+	bEnable:= IFC_HW.bEnable, 
+	bExecute:= IFC_HW.bExecute, 
+	bHalt:= , 
+	eState=> , 
+	ax:= IFC_HW.ax_BandMotor);
+
+fbDispenser(
+	bEnable:= IFC_HW.bEnable, 
+	bExecute:= IFC_HW.bExecute, 
+	rDistance:= 100.0, 
+	eState=> , 
+	ax:= IFC_HW.ax_Extruder1);
+
+fbTransport(
+	bEnable:= IFC_HW.bEnable, 
+	bExectue:= IFC_HW.bExecute, 
+	nStation:= , 
+	bSens1:= IFC_HW.bBandSens1, 
+	bSens2:= IFC_HW.bBandSens2, 
+	bSens3:= IFC_HW.bBandSens3, 
+	bSens4:= IFC_HW.bBandSens4, 
+	eState=> , 
+	bStopper1=> IFC_HW.bBandHub1, 
+	bStopper2=> IFC_HW.bBandHub2, 
+	bStopper3=> IFC_HW.bBandHub3, 
+	ax:= IFC_HW.ax_BandMotor);
+*)
+fbAbfullmodul(
+	bEnable:= IFC_HW.bEnable, 
+	bExecute:= IFC_HW.bExecute, 
+	eState=> fbStatusAmpel.eState, 
+	ax1:= IFC_HW.ax_Extruder1, 
+	ax2:= IFC_HW.ax_Extruder2, 
+	ax3:= IFC_HW.ax_Extruder3);
+	
+fbStatusAmpel(
+	eState:= , 
+	bLightRed=> IFC_HW.bAmpelRot, 
+	bLightYellow=> IFC_HW.bAmpelGelb, 
+	bLightGreen=> IFC_HW.bAmpelGrun);]]></ST>
+    </Implementation>
+    <LineIds Name="MAIN">
+      <LineId Id="262" Count="0" />
+      <LineId Id="265" Count="0" />
+      <LineId Id="284" Count="1" />
+      <LineId Id="368" Count="41" />
+      <LineId Id="292" Count="0" />
+      <LineId Id="310" Count="5" />
+      <LineId Id="309" Count="0" />
+      <LineId Id="367" Count="0" />
+      <LineId Id="293" Count="3" />
+      <LineId Id="250" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

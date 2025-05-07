@@ -1,0 +1,122 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="FB_Ampelstatus" Id="{98d0a674-dfea-4554-a87b-f1a228891480}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_Ampelstatus
+VAR_INPUT
+	eState : eBetriebszustand;
+END_VAR
+VAR_OUTPUT
+	bLightRed : BOOL;
+	bLightYellow : BOOL;
+	bLightGreen : BOOL;
+END_VAR
+VAR
+	fbBlinkRed : FB_Blinklicht;
+	fbBlinkYellow : FB_Blinklicht;
+	fbBlinkGreen : FB_Blinklicht;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[fbBlinkRed(bEinAus:= , tPeriode:= T#2S, bBlink=> bLightRed);
+fbBlinkYellow(bEinAus:= , tPeriode:= T#2S, bBlink=> bLightYellow);
+fbBlinkGreen(bEinAus:= , tPeriode:= T#2S, bBlink=> bLightGreen);
+
+CASE eState OF
+	0: //WARNING, Nicht fehlerbehafteter/ungeplanter Stop
+	fbBlinkRed.bEinAus := FALSE;
+	fbBlinkYellow.bEinAus := TRUE;
+	fbBlinkGreen.bEinAus := FALSE;
+
+	1: //ERROR, Fehlerbehafteter Stop
+	fbBlinkRed.bEinAus := TRUE;
+	fbBlinkYellow.bEinAus := FALSE;
+	fbBlinkGreen.bEinAus := FALSE;
+
+	2: //STOP, Geplanter Stop
+	fbBlinkRed.bEinAus := TRUE;
+	fbBlinkYellow.bEinAus := TRUE;
+	fbBlinkGreen.bEinAus := FALSE;
+	
+	3: //OFF, Nicht Betriebsbereit
+	fbBlinkRed.bEinAus := FALSE;
+	fbBlinkYellow.bEinAus := FALSE;
+	fbBlinkGreen.bEinAus := FALSE;
+	bLightRed := TRUE;
+	bLightYellow := FALSE;
+	bLightGreen := FALSE;
+	
+	4: //INIT, Herstellung betriebsbereit
+	fbBlinkRed.bEinAus := FALSE;
+	fbBlinkYellow.bEinAus := FALSE;
+	fbBlinkGreen.bEinAus := TRUE;
+	
+	5: //PROD, Betrieb
+	fbBlinkRed.bEinAus := FALSE;
+	fbBlinkYellow.bEinAus := FALSE;
+	fbBlinkGreen.bEinAus := FALSE;
+	bLightRed := FALSE;
+	bLightYellow := FALSE;
+	bLightGreen := TRUE;
+		
+	6: //READY, Betriebsbereit
+	fbBlinkRed.bEinAus := FALSE;
+	fbBlinkYellow.bEinAus := TRUE;
+	fbBlinkGreen.bEinAus := TRUE;
+	
+	7: //DONE, Betrieb abgeschlosen
+	fbBlinkRed.bEinAus := FALSE;
+	fbBlinkYellow.bEinAus := FALSE;
+	fbBlinkGreen.bEinAus := FALSE;
+	bLightRed := FALSE;
+	bLightYellow := TRUE;
+	bLightGreen := TRUE;
+	
+	8: //SETUP, Wartung
+	fbBlinkRed.bEinAus := FALSE;
+	fbBlinkYellow.bEinAus := FALSE;
+	fbBlinkGreen.bEinAus := FALSE;
+	bLightRed := FALSE;
+	bLightYellow := TRUE;
+	bLightGreen := FALSE;
+	
+END_CASE]]></ST>
+    </Implementation>
+    <LineIds Name="FB_Ampelstatus">
+      <LineId Id="249" Count="0" />
+      <LineId Id="248" Count="0" />
+      <LineId Id="247" Count="0" />
+      <LineId Id="171" Count="0" />
+      <LineId Id="24" Count="0" />
+      <LineId Id="197" Count="2" />
+      <LineId Id="140" Count="0" />
+      <LineId Id="111" Count="0" />
+      <LineId Id="194" Count="2" />
+      <LineId Id="143" Count="0" />
+      <LineId Id="91" Count="0" />
+      <LineId Id="191" Count="2" />
+      <LineId Id="84" Count="0" />
+      <LineId Id="92" Count="0" />
+      <LineId Id="187" Count="2" />
+      <LineId Id="60" Count="0" />
+      <LineId Id="116" Count="1" />
+      <LineId Id="115" Count="0" />
+      <LineId Id="37" Count="0" />
+      <LineId Id="184" Count="2" />
+      <LineId Id="38" Count="1" />
+      <LineId Id="181" Count="2" />
+      <LineId Id="128" Count="2" />
+      <LineId Id="40" Count="0" />
+      <LineId Id="105" Count="0" />
+      <LineId Id="178" Count="2" />
+      <LineId Id="109" Count="0" />
+      <LineId Id="49" Count="0" />
+      <LineId Id="175" Count="2" />
+      <LineId Id="134" Count="2" />
+      <LineId Id="50" Count="1" />
+      <LineId Id="172" Count="2" />
+      <LineId Id="137" Count="2" />
+      <LineId Id="52" Count="1" />
+      <LineId Id="27" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

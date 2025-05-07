@@ -1,0 +1,288 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="FB_Abfullmodul" Id="{0d4ac5ca-edd1-416b-acfb-b45ddda04365}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_Abfullmodul
+VAR_INPUT
+    bEnable: BOOL;
+    bExecute : BOOL;
+END_VAR
+VAR_OUTPUT
+    eState : eBetriebszustand;
+END_VAR
+VAR
+    nState : INT := 0;
+    nStation :INT := 0;
+    
+    fbVereinzelung : FB_Vereinzelung;
+    fbTransport : FB_Transport;
+    fbDispenser1 : FB_Dispenser;
+    fbDispenser2 : FB_Dispenser;
+    fbDispenser3 : FB_Dispenser;
+	fbEZylinder1: FB_EZylinder;
+	fbEZylinder2: FB_EZylinder;
+END_VAR
+VAR_IN_OUT
+    ax1 : AXIS_REF;
+	ax2 : AXIS_REF;
+	ax3 : AXIS_REF;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[fbVereinzelung(
+	bEnable:= bEnable, 
+	bExecute:= , 
+	bSensor1:= IFC_HW.bEinzelSens1, 
+	bSensor2:= IFC_HW.bEinzelSens2, 
+	bSensor3:= IFC_HW.bEinzelSens3, 
+	bSensor4:= IFC_HW.bBandSens1, 
+	eState=> , 
+	bGate1=> fbEZylinder1.bGate, 
+	bGate2=> fbEZylinder2.bGate);
+	
+fbEZylinder1(bGate:= , bError:= , bR1=> IFC_HW.bR1AKT1, bR2=> IFC_HW.bR2AKT1);
+fbEZylinder2(bGate:= , bError:= , bR1=> IFC_HW.bR1AKT2, bR2=> IFC_HW.bR2AKT2);
+
+fbTransport(
+	bEnable:= bEnable, 
+	bExecute:= , 
+	nStation:= nStation, 
+	bSens1:= IFC_HW.bBandSens1, 
+	bSens2:= IFC_HW.bBandSens2, 
+	bSens3:= IFC_HW.bBandSens3, 
+	bSens4:= IFC_HW.bBandSens4, 
+	eState=> , 
+	bStopper1=> IFC_HW.bBandHub1, 
+	bStopper2=> IFC_HW.bBandHub2, 
+	bStopper3=> IFC_HW.bBandHub3, 
+	ax:= IFC_HW.ax_BandMotor);
+	
+fbDispenser1(
+	bEnable:= bEnable, 
+	bExecute:= , 
+	rDistance:= 100, 
+	eState=> , 
+	ax:= ax1);
+
+fbDispenser2(
+	bEnable:= bEnable, 
+	bExecute:= , 
+	rDistance:= 100, 
+	eState=> , 
+	ax:= ax2);
+
+fbDispenser3(
+	bEnable:= bEnable, 
+	bExecute:= , 
+	rDistance:= 100, 
+	eState=> , 
+	ax:= ax3);
+
+CASE nState OF
+	
+	0: // OFF
+	eState := eBetriebszustand.OFF;
+	
+	fbVereinzelung.bEnable := FALSE;
+	fbTransport.bEnable := FALSE;
+	fbDispenser1.bEnable := FALSE;
+	fbDispenser2.bEnable := FALSE;
+	fbDispenser3.bEnable := FALSE;
+	
+	fbVereinzelung.bExecute := FALSE;
+	fbTransport.bExecute := FALSE;
+	fbDispenser1.bExecute := FALSE;
+	fbDispenser2.bExecute := FALSE;
+	fbDispenser3.bExecute := FALSE;
+	
+	IF bEnable THEN
+		nState:= 10; // INIT
+	END_IF
+	
+	10: // INIT
+	eState := eBetriebszustand.INIT;
+	
+	fbVereinzelung.bEnable := TRUE;
+	fbTransport.bEnable := TRUE;
+	fbDispenser1.bEnable := TRUE;
+	fbDispenser2.bEnable := TRUE;
+	fbDispenser3.bEnable := TRUE;
+	
+	fbVereinzelung.bExecute := FALSE;
+	fbTransport.bExecute := FALSE;
+	fbDispenser1.bExecute := FALSE;
+	fbDispenser2.bExecute := FALSE;
+	fbDispenser3.bExecute := FALSE;
+	
+	IF (fbVereinzelung.eState = eBetriebszustand.READY) AND (fbTransport.eState = eBetriebszustand.READY) AND (fbDispenser1.eState = eBetriebszustand.READY) 
+		AND (fbDispenser2.eState = eBetriebszustand.READY) AND (fbDispenser3.eState = eBetriebszustand.READY) THEN
+		
+		nState := 20; // READY
+	END_IF
+	
+	20: // READY
+	eState := eBetriebszustand.READY;
+	
+	fbVereinzelung.bEnable := TRUE;
+	fbTransport.bEnable := TRUE;
+	fbDispenser1.bEnable := TRUE;
+	fbDispenser2.bEnable := TRUE;
+	fbDispenser3.bEnable := TRUE;
+	
+	IF bExecute THEN
+		nState := 30; //Start
+	END_IF
+	
+	30: // PROD - Start
+	eState := eBetriebszustand.PROD;
+	nStation := 1;
+	
+	fbVereinzelung.bEnable := TRUE;
+	fbTransport.bEnable := TRUE;
+	fbDispenser1.bEnable := TRUE;
+	fbDispenser2.bEnable := TRUE;
+	fbDispenser3.bEnable := TRUE;
+	
+	fbVereinzelung.bExecute := TRUE;
+	fbTransport.bExecute := TRUE;
+	fbDispenser1.bExecute := FALSE;
+	fbDispenser2.bExecute := FALSE;
+	fbDispenser3.bExecute := FALSE;
+	
+	IF (fbVereinzelung.eState = eBetriebszustand.DONE) AND (fbTransport.eState = eBetriebszustand.DONE)THEN
+		nState := 31; // Extruder 1
+	END_IF
+	
+	31: // PROD - Extruder 1
+	eState := eBetriebszustand.PROD;
+	nStation := 1;
+
+	fbVereinzelung.bExecute := FALSE;
+	fbTransport.bExecute := FALSE;
+	fbDispenser1.bExecute := TRUE;
+	fbDispenser2.bExecute := FALSE;
+	fbDispenser3.bExecute := FALSE;
+	
+	IF fbDispenser1.eState = eBetriebszustand.DONE THEN
+		nState := 32; // Bewegung zu Station 2
+	END_IF
+	
+	32: // PROD - Bewegung zu Station 2
+	eState := eBetriebszustand.PROD;
+	nStation := 2;
+	
+	fbVereinzelung.bExecute := FALSE;
+	fbTransport.bExecute := TRUE;
+	fbDispenser1.bExecute := FALSE;
+	fbDispenser2.bExecute := FALSE;
+	fbDispenser3.bExecute := FALSE;
+	
+	IF fbTransport.eState = eBetriebszustand.DONE THEN
+		nState := 33; //  Extruder 2
+	END_IF
+	
+	33: // PROD - Extruder 2
+	eState := eBetriebszustand.PROD;
+	nStation := 2;
+	
+	fbVereinzelung.bExecute := FALSE;
+	fbTransport.bExecute := FALSE;
+	fbDispenser1.bExecute := FALSE;
+	fbDispenser2.bExecute := TRUE;
+	fbDispenser3.bExecute := FALSE;
+	
+	IF fbDispenser2.eState = eBetriebszustand.DONE THEN
+		nState := 34; // Bewegung zu Station 3
+	END_IF
+	
+	34: // PROD - Bewegung zu Station 3
+	eState := eBetriebszustand.PROD;
+	nStation := 3;
+	
+	fbVereinzelung.bExecute := FALSE;
+	fbTransport.bExecute := TRUE;
+	fbDispenser1.bExecute := FALSE;
+	fbDispenser2.bExecute := FALSE;
+	fbDispenser3.bExecute := FALSE;
+	
+	IF fbTransport.eState = eBetriebszustand.DONE THEN
+		nState := 35; // Extruder 3
+	END_IF
+	
+	35: // PROD - Extruder 3
+	eState := eBetriebszustand.PROD;
+	nStation := 3;
+	
+	fbVereinzelung.bExecute := FALSE;
+	fbTransport.bExecute := FALSE;
+	fbDispenser1.bExecute := FALSE;
+	fbDispenser2.bExecute := FALSE;
+	fbDispenser3.bExecute := TRUE;
+	
+	IF fbDispenser3.eState = eBetriebszustand.DONE THEN
+		nState := 36; // Bewegung zu Abholstation
+	END_IF
+	
+	36: // PROD - Bewegung zu Abholstation
+	eState := eBetriebszustand.PROD;
+	nStation := 4;
+	
+	fbVereinzelung.bExecute := FALSE;
+	fbTransport.bExecute := TRUE;
+	fbDispenser1.bExecute := FALSE;
+	fbDispenser2.bExecute := FALSE;
+	fbDispenser3.bExecute := FALSE; 
+	
+	IF fbTransport.eState = eBetriebszustand.DONE THEN
+		nState := 40; // DONE
+	END_IF
+	
+	40: // DONE
+	eState :=  eBetriebszustand.DONE;
+	nStation := 4;
+	
+	IF NOT bExecute THEN
+		nState := 20; // READY
+	ELSIF nStation = 4 THEN
+		nState := 30; // START
+	END_IF
+	
+END_CASE]]></ST>
+    </Implementation>
+    <LineIds Name="FB_Abfullmodul">
+      <LineId Id="300" Count="8" />
+      <LineId Id="298" Count="0" />
+      <LineId Id="323" Count="0" />
+      <LineId Id="325" Count="0" />
+      <LineId Id="324" Count="0" />
+      <LineId Id="309" Count="0" />
+      <LineId Id="311" Count="11" />
+      <LineId Id="299" Count="0" />
+      <LineId Id="310" Count="0" />
+      <LineId Id="27" Count="19" />
+      <LineId Id="72" Count="0" />
+      <LineId Id="74" Count="21" />
+      <LineId Id="97" Count="0" />
+      <LineId Id="329" Count="0" />
+      <LineId Id="98" Count="18" />
+      <LineId Id="118" Count="0" />
+      <LineId Id="330" Count="0" />
+      <LineId Id="119" Count="4" />
+      <LineId Id="125" Count="5" />
+      <LineId Id="132" Count="34" />
+      <LineId Id="333" Count="0" />
+      <LineId Id="168" Count="11" />
+      <LineId Id="332" Count="0" />
+      <LineId Id="334" Count="1" />
+      <LineId Id="180" Count="10" />
+      <LineId Id="336" Count="0" />
+      <LineId Id="191" Count="12" />
+      <LineId Id="337" Count="2" />
+      <LineId Id="204" Count="10" />
+      <LineId Id="340" Count="2" />
+      <LineId Id="215" Count="14" />
+      <LineId Id="344" Count="0" />
+      <LineId Id="343" Count="0" />
+      <LineId Id="230" Count="2" />
+      <LineId Id="9" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
