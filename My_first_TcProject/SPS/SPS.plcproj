@@ -21,25 +21,46 @@
     <Compile Include="DUTs\eBetriebszustand.TcDUT">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="GVLs\GVL_PosKinematic.TcGVL">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="GVLs\IFC_HW.TcGVL">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="PlcTask.TcTTO">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\FB_Abfullmodul.TcPOU">
+    <Compile Include="POUs\Abfüllmodul\Ampelleuchte\FB_Ampelstatus.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\FB_Ampelstatus.TcPOU">
+    <Compile Include="POUs\Abfüllmodul\Ampelleuchte\FB_Blinklicht.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\FB_Blinklicht.TcPOU">
+    <Compile Include="POUs\Abfüllmodul\FB_Abfullmodul.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\FB_Dispenser.TcPOU">
+    <Compile Include="POUs\Abfüllmodul\FB_Dispenser.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\FB_EZylinder.TcPOU">
+    <Compile Include="POUs\Abfüllmodul\Tranport\FB_Forderband.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\Abfüllmodul\Tranport\FB_Transport.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\Abfüllmodul\Tranport\FB_TransportA.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\Abfüllmodul\Tranport\FB_TransportE.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\Abfüllmodul\Tranport\FB_TransportLogik.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\Abfüllmodul\Vereinzelung\FB_EZylinder.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\Abfüllmodul\Vereinzelung\FB_Vereinzelung.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="POUs\FB_Maschinentuer.TcPOU">
@@ -48,35 +69,27 @@
     <Compile Include="POUs\FB_Testmaschinentuer.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\FB_Vereinzelung.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="POUs\MAIN.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\FUN_Scale.TcPOU">
+    <Compile Include="POUs\FUN_linear_Scale.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\Tranport\FB_Forderband.TcPOU">
+    <Compile Include="POUs\Robotermodul\FB_Robotersteuerung.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\Tranport\FB_Transport.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\Tranport\FB_TransportE.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\Tranport\FB_TransportA.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\Tranport\FB_TransportLogik.TcPOU">
+    <Compile Include="POUs\Robotermodul\FB_Roboterachsensteuerung.TcPOU">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DUTs" />
     <Folder Include="GVLs" />
-    <Folder Include="POUs\Tranport" />
+    <Folder Include="POUs\Abfüllmodul" />
+    <Folder Include="POUs\Abfüllmodul\Ampelleuchte" />
+    <Folder Include="POUs\Abfüllmodul\Vereinzelung" />
+    <Folder Include="POUs\Abfüllmodul\Tranport" />
+    <Folder Include="POUs\Robotermodul" />
     <Folder Include="VISUs" />
     <Folder Include="POUs" />
   </ItemGroup>

@@ -8,58 +8,55 @@ VAR
 	
 	ix : UINT := 0;
 	ry : REAL := 0;
+	fb_power: MC_Power;
+	fb_power2: MC_Power;
+	
+	fb_kevin: FB_Robotersteuerung;
 END_VAR]]></Declaration>
     <Implementation>
       <ST><![CDATA[IFC_HW.ax_BandMotor.ReadStatus();
 IFC_HW.ax_Extruder1.ReadStatus();
 IFC_HW.ax_Extruder2.ReadStatus();
 IFC_HW.ax_Extruder3.ReadStatus();
+IFC_HW.ax_ManG.ReadStatus();
+IFC_HW.ax_ManY.ReadStatus();
 
-ry := TO_UINT(FUN_Scale(ix, 4096, 0, 350, 0));
+fb_power(
+	Axis:= IFC_HW.ax_ManG, 
+	Enable:= , 
+	Enable_Positive:= , 
+	Enable_Negative:= , 
+	Override:= , 
+	BufferMode:= , 
+	Options:= , 
+	Status=> , 
+	Busy=> , 
+	Error=> , 
+	ErrorID=> );
 
-(*
-fbVereinzelung(
-	bEnable:= IFC_HW.bEnable, 
-	bExecute:= IFC_HW.bExecute, 
-	bSensor1:= IFC_HW.bEinzelSens1, 
-	bSensor2:= IFC_HW.bEinzelSens2, 
-	bSensor3:= IFC_HW.bEinzelSens3, 
-	bSensor4:= IFC_HW.bBandSens1, 
-	eState=> fbStatusAmpel.eState, 
-	bGate1=> fbEZylinder1.bGate, 
-	bGate2=> fbEZylinder2.bGate);
+fb_power2(
+	Axis:= IFC_HW.ax_ManY, 
+	Enable:= , 
+	Enable_Positive:= , 
+	Enable_Negative:= , 
+	Override:= , 
+	BufferMode:= , 
+	Options:= , 
+	Status=> , 
+	Busy=> , 
+	Error=> , 
+	ErrorID=> );	
 
-fbEZylinder1(bGate:= , bError:= , bR1=> IFC_HW.bR1AKT1, bR2=> IFC_HW.bR2AKT1);
-fbEZylinder2(bGate:= , bError:= , bR1=> IFC_HW.bR1AKT2, bR2=> IFC_HW.bR2AKT2);
+fb_kevin(
+	rXpos:= , 
+	rYpos:= , 
+	rZpos:= , 
+	bGclose:= , 
+	eState=> );
+	
 
-fbForderband(
-	bEnable:= IFC_HW.bEnable, 
-	bExecute:= IFC_HW.bExecute, 
-	bHalt:= , 
-	eState=> , 
-	ax:= IFC_HW.ax_BandMotor);
+ry := TO_UINT(FUN_linear_Scale(ix, 4096, 0, 350, 0));
 
-fbDispenser(
-	bEnable:= IFC_HW.bEnable, 
-	bExecute:= IFC_HW.bExecute, 
-	rDistance:= 100.0, 
-	eState=> , 
-	ax:= IFC_HW.ax_Extruder1);
-
-fbTransport(
-	bEnable:= IFC_HW.bEnable, 
-	bExectue:= IFC_HW.bExecute, 
-	nStation:= , 
-	bSens1:= IFC_HW.bBandSens1, 
-	bSens2:= IFC_HW.bBandSens2, 
-	bSens3:= IFC_HW.bBandSens3, 
-	bSens4:= IFC_HW.bBandSens4, 
-	eState=> , 
-	bStopper1=> IFC_HW.bBandHub1, 
-	bStopper2=> IFC_HW.bBandHub2, 
-	bStopper3=> IFC_HW.bBandHub3, 
-	ax:= IFC_HW.ax_BandMotor);
-*)
 fbAbfullmodul(
 	bEnable:= IFC_HW.bEnable, 
 	bExecute:= IFC_HW.bExecute, 
@@ -72,21 +69,33 @@ fbStatusAmpel(
 	eState:= , 
 	bLightRed=> IFC_HW.bAmpelRot, 
 	bLightYellow=> IFC_HW.bAmpelGelb, 
-	bLightGreen=> IFC_HW.bAmpelGrun);]]></ST>
+	bLightGreen=> IFC_HW.bAmpelGrun);
+	
+]]></ST>
     </Implementation>
     <LineIds Name="MAIN">
       <LineId Id="262" Count="0" />
       <LineId Id="265" Count="0" />
       <LineId Id="284" Count="1" />
+      <LineId Id="424" Count="0" />
+      <LineId Id="437" Count="0" />
+      <LineId Id="435" Count="0" />
+      <LineId Id="439" Count="10" />
+      <LineId Id="436" Count="0" />
+      <LineId Id="452" Count="11" />
+      <LineId Id="450" Count="0" />
+      <LineId Id="468" Count="0" />
+      <LineId Id="470" Count="4" />
+      <LineId Id="467" Count="0" />
+      <LineId Id="451" Count="0" />
       <LineId Id="415" Count="1" />
-      <LineId Id="414" Count="0" />
-      <LineId Id="368" Count="41" />
       <LineId Id="292" Count="0" />
       <LineId Id="310" Count="5" />
       <LineId Id="309" Count="0" />
       <LineId Id="367" Count="0" />
       <LineId Id="293" Count="3" />
       <LineId Id="250" Count="0" />
+      <LineId Id="425" Count="1" />
     </LineIds>
   </POU>
 </TcPlcObject>
