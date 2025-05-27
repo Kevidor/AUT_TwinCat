@@ -1,0 +1,76 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="FB_MqttClient" Id="{3e717b62-5220-4ec3-aa52-f14d56865976}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_MqttClient
+VAR_INPUT
+END_VAR
+VAR_OUTPUT
+END_VAR
+VAR
+    fbMqttClient : FB_IotMqttClient;
+    sTopicToPublish: STRING(255) := 'Temperature'; 	// MQTT topic for temperature
+    sMessageToPublish: STRING(255); 				// Message buffer
+    tmrSendMessageInterval: TON := (PT := T#1S); 	// Interval timer for publishing
+    ai_RoomTemperature: INT := 1; 					// Room temperature from thermocouple
+	is_init : BOOL := FALSE;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[fbMqttClient.sClientId:= 'Publishing PLC';
+fbMqttClient.sHostName:= '158.180.44.197';
+fbMqttClient.nHostPort:= 1883;
+fbMqttClient.sTopicPrefix:= 'aut/apt-get rekt/'; 
+fbMqttClient.sUserName:= 'bobm';
+fbMqttClient.sUserPassword:= 'letmein';
+
+fbMqttClient.Execute(bConnect := TRUE);
+
+//METH_Publish('$$groupname', 'apt-get rekt');
+//METH_Publish('names', 'Erdogan - Holzmann - Jolfai');
+//METH_Publish('bEnable', bool_to_string(IFC_HW.bEnable));
+METH_Publish('bEnable/$$unit', 'BOOL');]]></ST>
+    </Implementation>
+    <Method Name="METH_Publish" Id="{01defe36-a556-483c-9626-a78d51726ba9}">
+      <Declaration><![CDATA[METHOD METH_Publish : BOOL
+VAR_INPUT
+	sTopicToPublish : STRING;
+	sMessageToPublish : STRING;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF fbMqttClient.bConnected THEN
+    tmrSendMessageInterval(IN := TRUE);
+    IF tmrSendMessageInterval.Q THEN
+        tmrSendMessageInterval(IN := FALSE);
+        //sMessageToPublish := REAL_TO_STRING(ai_RoomTemperature / 10.0);
+
+        fbMqttClient.Publish(
+            sTopic := sTopicToPublish,
+            pPayload := ADR(sMessageToPublish),
+            nPayloadSize := LEN(sMessageToPublish) + 1,
+            eQoS := TcIotMqttQos.AtMostOnceDelivery,
+            bRetain := TRUE,
+            bQueue := TRUE
+        );
+    END_IF
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="FB_MqttClient">
+      <LineId Id="117" Count="0" />
+      <LineId Id="119" Count="2" />
+      <LineId Id="123" Count="0" />
+      <LineId Id="127" Count="0" />
+      <LineId Id="132" Count="0" />
+      <LineId Id="131" Count="0" />
+      <LineId Id="147" Count="0" />
+      <LineId Id="150" Count="1" />
+      <LineId Id="172" Count="0" />
+      <LineId Id="174" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_MqttClient.METH_Publish">
+      <LineId Id="24" Count="14" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

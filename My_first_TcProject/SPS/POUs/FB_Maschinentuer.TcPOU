@@ -1,0 +1,83 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="FB_Maschinentuer" Id="{172d20d6-79a1-4c8e-b106-8cb5a964c781}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_Maschinentuer
+VAR_INPUT
+	// Sensoreingang
+	bDoorO	: BOOL;
+	bDoorC	: BOOL;
+	// Steuereingang
+	bEnable	: BOOL;
+	bOpen 	: BOOL;
+	bClose 	: BOOL;
+END_VAR
+VAR_OUTPUT
+	// Aktor Ausgang
+	bVentil	: BOOL;
+	// Zustände
+	bError	: BOOL;
+END_VAR
+VAR
+	nState : INT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[CASE nState OF
+	0: // Tür geschlossen
+	// Ausgänge setzen
+	bVentil := TRUE;
+	
+	// Übergangsbedingung
+	IF NOT bDoorC AND bEnable THEN
+		nState := 3; // Tür schließen
+	ELSIF bOpen THEN
+		nState := 1; // Tür öffnen
+	END_IF
+	
+	1: // Tür öffen
+	// Ausgänge setzen
+	bVentil := FALSE;
+	
+	// Übergangsbedingung
+	IF NOT bDoorO THEN
+		nState := nState + 1; // Tür geöffnet
+	END_IF
+	
+	2: // Tür offen
+	// Ausgänge setzen
+	bVentil := FALSE;
+	
+	// Übergangsbedingung
+	IF bClose AND bEnable THEN
+		nState := nState + 1; // Tür schließen
+	END_IF
+	
+	3: // Tür schließen
+	// Ausgänge setzen
+	bVentil := TRUE;
+	
+	// Übergangsbedingung
+	IF NOT bDoorC THEN
+		nState := 0; // Tür geöffnet
+	END_IF
+END_CASE]]></ST>
+    </Implementation>
+    <LineIds Name="FB_Maschinentuer">
+      <LineId Id="9" Count="0" />
+      <LineId Id="21" Count="0" />
+      <LineId Id="23" Count="5" />
+      <LineId Id="32" Count="1" />
+      <LineId Id="29" Count="0" />
+      <LineId Id="34" Count="1" />
+      <LineId Id="38" Count="5" />
+      <LineId Id="37" Count="0" />
+      <LineId Id="46" Count="0" />
+      <LineId Id="48" Count="6" />
+      <LineId Id="47" Count="0" />
+      <LineId Id="55" Count="0" />
+      <LineId Id="57" Count="6" />
+      <LineId Id="56" Count="0" />
+      <LineId Id="22" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

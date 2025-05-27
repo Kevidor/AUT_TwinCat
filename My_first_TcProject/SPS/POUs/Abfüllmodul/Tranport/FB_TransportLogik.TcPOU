@@ -1,0 +1,188 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="FB_TransportLogik" Id="{e1b20b99-cc52-4075-8608-92d62d8ecdb3}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_TransportLogik
+VAR_INPUT
+	eStateE : eBetriebszustand;
+	bEnable : BOOL;
+	bExecute : BOOL;
+	nStation : INT;
+	
+	bStation1 : BOOL;
+	bStation2 : BOOL;
+	bStation3 : BOOL;
+	bStation4 : BOOL;
+END_VAR
+VAR_OUTPUT
+	eStateA : eBetriebszustand;
+	bEnableA : BOOL;
+	bExecuteA : BOOL;
+	bHaltA : BOOL;
+	
+	bStop1 : BOOL;
+	bStop2 : BOOL;
+	bStop3 : BOOL;
+END_VAR
+VAR
+	nState : INT;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[CASE nState OF
+	0: //OFF
+	eStateA := eBetriebszustand.OFF;
+	
+	bEnableA := FALSE;
+	bExecuteA := FALSE;
+	bHaltA := FALSE;
+	bStop1 := FALSE;
+	bStop2 := FALSE;
+	bStop3 := FALSE;
+	
+	IF bEnable THEN
+		nState := 1;
+	END_IF
+	
+	1: //INIT
+	eStateA := eBetriebszustand.INIT;
+	
+	bEnableA := TRUE;
+	bExecuteA := FALSE;
+	bHaltA := FALSE;
+	bStop1 := FALSE;
+	bStop2 := FALSE;
+	bStop3 := FALSE;
+	
+	IF eStateE = eBetriebszustand.READY THEN
+		nState := 2;
+	END_IF
+	
+	2: //READY
+	eStateA := eBetriebszustand.READY;
+	
+	bEnableA := TRUE;
+	bExecuteA := FALSE;
+	bHaltA := TRUE;
+	bStop1 := FALSE;
+	bStop2 := FALSE;
+	bStop3 := FALSE;
+	
+	IF bExecute THEN
+		nState := 3;
+	END_IF
+	
+	3: //PROD-Förderband start
+	eStateA := eBetriebszustand.PROD;
+	
+	bEnableA := TRUE;
+	bExecuteA := TRUE;
+	bHaltA := FALSE;
+	IF (nStation - 1) = 1 THEN
+		bStop1 := TRUE;
+		bStop2 := FALSE;
+		bStop3 := FALSE;
+	ELSIF (nStation - 1) = 2 THEN
+		bStop1 := FALSE;
+		bStop2 := TRUE;
+		bStop3 := FALSE;
+	ELSIF (nStation - 1) = 3 THEN
+		bStop1 := FALSE;
+		bStop2 := FALSE;
+		bStop3 := TRUE;
+	END_IF
+	
+	IF bStation1 AND nStation = 1 THEN
+		nState := 4;
+	ELSIF bStation2 AND nStation = 2 THEN
+		nState := 4;
+	ELSIF bStation3 AND nStation = 3 THEN
+		nState := 4;
+	ELSIF bStation4 AND nStation = 4 THEN
+		nState := 4;
+	END_IF
+	
+	4: //PROD-Förderband stop
+	eStateA := eBetriebszustand.PROD;
+	
+	bEnableA := TRUE;
+	bExecuteA := FALSE;
+	bHaltA := TRUE;
+	bStop1 := FALSE;
+	bStop2 := FALSE;
+	bStop3 := FALSE;
+	
+	IF eStateE = eBetriebszustand.READY THEN
+		nState := 5;
+	END_IF
+	
+	5: //DONE
+	eStateA := eBetriebszustand.DONE;
+	
+	IF NOT bExecute THEN
+		nState := 2;
+	END_IF
+END_CASE]]></ST>
+    </Implementation>
+    <LineIds Name="FB_TransportLogik">
+      <LineId Id="9" Count="0" />
+      <LineId Id="53" Count="0" />
+      <LineId Id="82" Count="1" />
+      <LineId Id="77" Count="0" />
+      <LineId Id="72" Count="1" />
+      <LineId Id="75" Count="1" />
+      <LineId Id="70" Count="0" />
+      <LineId Id="78" Count="3" />
+      <LineId Id="57" Count="1" />
+      <LineId Id="84" Count="0" />
+      <LineId Id="89" Count="0" />
+      <LineId Id="91" Count="4" />
+      <LineId Id="90" Count="0" />
+      <LineId Id="96" Count="3" />
+      <LineId Id="62" Count="1" />
+      <LineId Id="85" Count="0" />
+      <LineId Id="100" Count="0" />
+      <LineId Id="118" Count="4" />
+      <LineId Id="116" Count="1" />
+      <LineId Id="102" Count="1" />
+      <LineId Id="101" Count="0" />
+      <LineId Id="64" Count="1" />
+      <LineId Id="86" Count="0" />
+      <LineId Id="104" Count="0" />
+      <LineId Id="196" Count="1" />
+      <LineId Id="123" Count="0" />
+      <LineId Id="126" Count="0" />
+      <LineId Id="133" Count="1" />
+      <LineId Id="129" Count="1" />
+      <LineId Id="135" Count="1" />
+      <LineId Id="131" Count="1" />
+      <LineId Id="137" Count="1" />
+      <LineId Id="127" Count="1" />
+      <LineId Id="124" Count="0" />
+      <LineId Id="151" Count="0" />
+      <LineId Id="164" Count="0" />
+      <LineId Id="155" Count="0" />
+      <LineId Id="163" Count="0" />
+      <LineId Id="159" Count="0" />
+      <LineId Id="107" Count="0" />
+      <LineId Id="225" Count="0" />
+      <LineId Id="224" Count="0" />
+      <LineId Id="105" Count="0" />
+      <LineId Id="66" Count="1" />
+      <LineId Id="87" Count="0" />
+      <LineId Id="165" Count="1" />
+      <LineId Id="199" Count="0" />
+      <LineId Id="167" Count="0" />
+      <LineId Id="171" Count="0" />
+      <LineId Id="170" Count="0" />
+      <LineId Id="168" Count="0" />
+      <LineId Id="108" Count="0" />
+      <LineId Id="110" Count="1" />
+      <LineId Id="109" Count="0" />
+      <LineId Id="68" Count="1" />
+      <LineId Id="88" Count="0" />
+      <LineId Id="112" Count="0" />
+      <LineId Id="114" Count="1" />
+      <LineId Id="113" Count="0" />
+      <LineId Id="54" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

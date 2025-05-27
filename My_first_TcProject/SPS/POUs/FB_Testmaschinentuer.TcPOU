@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="FB_Testmaschinentuer" Id="{3cd13bc1-8cc2-48e0-b308-67082b0854ce}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_Testmaschinentuer
+VAR_INPUT
+	bVentil	: BOOL;
+END_VAR
+VAR_OUTPUT
+	bDoorC	: BOOL;
+	bDoorO	: BOOL;
+END_VAR
+VAR
+	fbTon_O	: TON;
+	fbTon_C	: TON;
+	tDuration : TIME := T#5S;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[fbTon_C(IN:= bVentil, PT:= tDuration, Q=> , ET=> );
+fbTon_O(IN:= NOT bVentil, PT:= tDuration, Q=> , ET=> );
+
+IF bVentil THEN
+	bDoorO := FALSE;
+	
+	IF fbTon_C.Q THEN
+		bDoorC := TRUE;
+	END_IF
+ELSIF NOT bVentil THEN
+	bDoorC := FALSE;
+
+	IF fbTon_O.Q THEN
+		bDoorO := TRUE;
+	END_IF
+END_IF]]></ST>
+    </Implementation>
+    <LineIds Name="FB_Testmaschinentuer">
+      <LineId Id="65" Count="0" />
+      <LineId Id="62" Count="1" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="48" Count="0" />
+      <LineId Id="61" Count="0" />
+      <LineId Id="49" Count="0" />
+      <LineId Id="21" Count="0" />
+      <LineId Id="52" Count="0" />
+      <LineId Id="23" Count="0" />
+      <LineId Id="26" Count="0" />
+      <LineId Id="60" Count="0" />
+      <LineId Id="53" Count="1" />
+      <LineId Id="27" Count="0" />
+      <LineId Id="22" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
