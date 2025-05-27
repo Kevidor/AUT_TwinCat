@@ -1,0 +1,190 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="FB_Forderband" Id="{369cab93-7e5b-41e3-a6a5-f3948bb95f31}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_Forderband
+VAR_INPUT
+	// Steuereingang
+	bEnable : BOOL;
+	bExecute : BOOL;
+	bHalt : BOOL;
+END_VAR
+VAR_OUTPUT
+	eState : eBetriebszustand;
+END_VAR
+VAR
+	nState : INT := 0;
+	rVelocity : REAL;
+	rAccelaration : REAL;
+	fbRTrig: R_Trig;
+	
+	// Motion Blöcke Tc2_Mc2
+	mcReset : MC_Reset;
+	mcPower : MC_Power;
+	mcVelocity : MC_MoveVelocity;
+	mcHalt : MC_Halt;
+END_VAR
+VAR_IN_OUT
+	ax : Axis_Ref;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[ax.ReadStatus();
+mcHalt(
+	Axis:= ax, 
+	Execute:= , 
+	Deceleration:= , 
+	Jerk:= , 
+	BufferMode:= , 
+	Options:= , 
+	Done=> , 
+	Busy=> , 
+	Active=> , 
+	CommandAborted=> , 
+	Error=> , 
+	ErrorID=> );
+	
+mcReset(
+	Axis:= ax, 
+	Execute:= , 
+	Done=> , 
+	Busy=> , 
+	Error=> , 
+	ErrorID=> );
+	
+mcPower(
+	Axis:= ax, 
+	Enable:= , 
+	Enable_Positive:= TRUE, 
+	Enable_Negative:= , 
+	Override:= , 
+	BufferMode:= , 
+	Options:= , 
+	Status=> , 
+	Busy=> , 
+	Error=> , 
+	ErrorID=> );
+	
+mcVelocity(
+	Axis:= ax, 
+	Execute:= , 
+	Velocity:= 30,
+	Acceleration:= 60, 
+	Deceleration:= , 
+	Jerk:= , 
+	Direction:= MC_Positive_Direction, 
+	BufferMode:= , 
+	Options:= , 
+	InVelocity=> , 
+	Busy=> , 
+	Active=> , 
+	CommandAborted=> , 
+	Error=> , 
+	ErrorID=> );
+
+fbRTrig(CLK:= mcPower.Status, Q=> );
+IF fbRTrig.Q THEN
+    nState := 0;
+END_IF
+	
+CASE nState OF 
+	0: // OFF
+	eState := eBetriebszustand.OFF;
+	mcPower.Enable := TRUE;
+	
+	IF mcPower.Status AND bEnable THEN
+		nState := 20;
+	ELSIF NOT mcPower.Status AND bEnable THEN
+		nState := 10;
+	END_IF
+	
+	10: // INIT-Reset
+	eState := eBetriebszustand.INIT;
+	mcReset.Execute := TRUE;
+	mcPower.Enable := FALSE;
+	
+	IF mcReset.Done THEN
+		nState := 11;
+		mcReset.Execute := FALSE;
+	END_IF
+	
+	11: // INIT-Power
+	eState := eBetriebszustand.INIT;
+	mcReset.Execute := FALSE;
+	mcPower.Enable := TRUE;
+	
+	IF mcPower.Status THEN
+		nState := 20;
+	END_IF
+	
+	20: // READY
+	eState := eBetriebszustand.READY;
+	
+	IF bExecute THEN
+		nState := 30;
+	END_IF
+	
+	30: // PROD-kontinuierliche Bewegung
+	eState := eBetriebszustand.PROD;
+	mcVelocity.Execute := TRUE;
+	mcVelocity.Velocity := 30;
+	mcVelocity.Acceleration := 60;
+	
+	IF bHalt THEN
+		nState := 31;
+	END_IF
+	
+	31: // PROD-Halten
+	eState := eBetriebszustand.PROD;
+	mcVelocity.Execute := FALSE;
+	mcHalt.Execute := TRUE;
+	mcHalt.Deceleration := 60;
+	
+	IF mcHalt.Done THEN
+		nState := 40;
+	END_IF
+	
+	40: // DONE-Fertig
+	eState := eBetriebszustand.DONE;
+	mcHalt.Execute := FALSE;
+	
+	IF NOT bExecute THEN
+		nState := 20;
+	END_IF
+END_CASE]]></ST>
+    </Implementation>
+    <LineIds Name="FB_Forderband">
+      <LineId Id="331" Count="0" />
+      <LineId Id="243" Count="11" />
+      <LineId Id="184" Count="0" />
+      <LineId Id="105" Count="0" />
+      <LineId Id="39" Count="5" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="45" Count="0" />
+      <LineId Id="47" Count="10" />
+      <LineId Id="46" Count="0" />
+      <LineId Id="60" Count="0" />
+      <LineId Id="255" Count="14" />
+      <LineId Id="61" Count="0" />
+      <LineId Id="274" Count="0" />
+      <LineId Id="301" Count="2" />
+      <LineId Id="106" Count="0" />
+      <LineId Id="275" Count="0" />
+      <LineId Id="107" Count="1" />
+      <LineId Id="110" Count="0" />
+      <LineId Id="112" Count="2" />
+      <LineId Id="118" Count="2" />
+      <LineId Id="116" Count="0" />
+      <LineId Id="123" Count="3" />
+      <LineId Id="128" Count="3" />
+      <LineId Id="306" Count="0" />
+      <LineId Id="132" Count="4" />
+      <LineId Id="139" Count="0" />
+      <LineId Id="141" Count="7" />
+      <LineId Id="150" Count="2" />
+      <LineId Id="155" Count="11" />
+      <LineId Id="168" Count="2" />
+      <LineId Id="167" Count="0" />
+      <LineId Id="171" Count="11" />
+      <LineId Id="109" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

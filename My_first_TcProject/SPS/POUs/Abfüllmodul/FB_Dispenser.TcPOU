@@ -1,0 +1,136 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="FB_Dispenser" Id="{8d06c455-5b77-45b0-aef5-aae9b334b98a}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_Dispenser
+VAR_INPUT
+    // Steuereingang
+    bEnable : BOOL;
+    bExecute:BOOL;
+    rDistance : REAL;
+    
+END_VAR
+VAR_OUTPUT
+    eState : eBetriebszustand;
+END_VAR
+VAR
+    // Motion Blöcke der Tc2_Mc2
+    mcPower : MC_Power;
+    mcReset : MC_Reset;
+    mcRelative : MC_MoveRelative;
+	fbRTrig : R_TRIG;
+    nState : INT := 0;
+END_VAR
+VAR_IN_OUT
+    ax : AXIS_REF;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[ax.ReadStatus();
+mcReset(
+    Axis:= ax, 
+    Execute:= , 
+    Done=> , 
+    Busy=> , 
+    Error=> , 
+    ErrorID=> );
+
+mcPower(
+    Axis:= ax, 
+    Enable:= , 
+    Enable_Positive:= TRUE, 
+    Enable_Negative:= , 
+    Override:= , 
+    BufferMode:= , 
+    Options:= , 
+    Status=> , 
+    Busy=> , 
+    Error=> , 
+    ErrorID=> );
+
+mcRelative(
+    Axis:= ax, 
+    Execute:= , 
+    Distance:= , 
+    Velocity:= 30, 
+    Acceleration:= 60, 
+    Deceleration:= 60, 
+    Jerk:= , 
+    BufferMode:= , 
+    Options:= , 
+    Done=> , 
+    Busy=> , 
+    Active=> , 
+    CommandAborted=> , 
+    Error=> , 
+    ErrorID=> );
+
+fbRTrig(CLK:= mcPower.Status, Q=> );
+IF fbRTrig.Q THEN
+    nState := 0;
+END_IF
+
+CASE nState OF
+    0: // OFF
+    eState := eBetriebszustand.OFF;
+
+    IF mcPower.Status AND bEnable THEN
+        nState := 20; // Ready
+    ELSIF NOT mcPower.Status AND bEnable THEN
+        nState := 10; // INIT - Reset
+    END_IF
+
+    10: // INIT - Reset
+     eState := eBetriebszustand.INIT;
+
+     mcReset.Execute := TRUE;
+     mcPower.Enable := FALSE;
+
+     IF mcReset.Done THEN
+         nState := 11; // INIT - Power
+     END_IF
+
+     11: // INIT - Power
+     eState := eBetriebszustand.INIT;
+
+     mcPower.Enable := TRUE;
+     mcReset.Execute := FALSE;
+
+     IF mcPower.Status THEN
+         nState := 20; // Ready
+     END_IF
+
+     20: // READY
+     eState := eBetriebszustand.READY;
+
+     IF bExecute THEN
+         nState := 30; // relative Bewegunng
+     END_IF
+
+     30: // PRODE-relative Bewegung
+     eState := eBetriebszustand.PROD;
+
+     mcRelative.Execute := TRUE;
+     mcRelative.Distance := rDistance;
+
+     IF mcRelative.Done THEN
+         nState:= 40; // Done
+     END_IF
+
+     40: // DONE
+     eState := eBetriebszustand.DONE;
+	 mcRelative.Execute := False;
+
+     IF NOT bExecute THEN
+         nState := 20; //Ready
+     END_IF
+
+END_CASE;]]></ST>
+    </Implementation>
+    <LineIds Name="FB_Dispenser">
+      <LineId Id="155" Count="0" />
+      <LineId Id="13" Count="91" />
+      <LineId Id="132" Count="0" />
+      <LineId Id="105" Count="4" />
+      <LineId Id="9" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

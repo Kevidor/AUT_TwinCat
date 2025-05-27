@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="MAIN" Id="{548732a1-9ded-4471-a302-66e7b753eacc}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAIN
+VAR
+	fbAbfullmodul : FB_Abfullmodul;
+	fbStatusAmpel : FB_Ampelstatus;
+	fbRobotersteuerung: FB_Robotersteuerung;
+	fbMqttClient : FB_MqttClient;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[fbAbfullmodul(
+	bEnable:= IFC_HW.bEnable, 
+	bExecute:= IFC_HW.bExecute, 
+	eState=> fbStatusAmpel.eState, 
+	ax1:= IFC_HW.ax_Extruder1, 
+	ax2:= IFC_HW.ax_Extruder2, 
+	ax3:= IFC_HW.ax_Extruder3);
+	
+fbStatusAmpel(
+	eState:= , 
+	bLightRed=> IFC_HW.bAmpelRot, 
+	bLightYellow=> IFC_HW.bAmpelGelb, 
+	bLightGreen=> IFC_HW.bAmpelGrun);
+	
+fbRobotersteuerung(
+	bEnable:= IFC_HW.bEnable, 
+	bExecute:= IFC_HW.bExecute, 
+	rXpos:= , 
+	rYpos:= , 
+	rZpos:= , 
+	bGclose:= , 
+	eState=> );
+
+fbMqttClient();
+]]></ST>
+    </Implementation>
+    <LineIds Name="MAIN">
+      <LineId Id="310" Count="5" />
+      <LineId Id="309" Count="0" />
+      <LineId Id="367" Count="0" />
+      <LineId Id="293" Count="3" />
+      <LineId Id="250" Count="0" />
+      <LineId Id="425" Count="0" />
+      <LineId Id="517" Count="6" />
+      <LineId Id="426" Count="0" />
+      <LineId Id="531" Count="0" />
+      <LineId Id="529" Count="0" />
+      <LineId Id="533" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

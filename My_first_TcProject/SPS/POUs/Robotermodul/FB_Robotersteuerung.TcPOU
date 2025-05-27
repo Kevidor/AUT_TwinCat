@@ -1,0 +1,207 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="FB_Robotersteuerung" Id="{2dde4477-e1e2-4351-aa2e-f07033cc3dda}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_Robotersteuerung
+VAR_INPUT
+	bEnable : BOOL;
+	bExecute : BOOL;
+	rXpos : REAL := 29;
+	rYpos : REAL := 145.5;
+	rZpos : REAL := 45;
+	bGclose : BOOL := FALSE;
+END_VAR
+VAR_OUTPUT
+	eState : eBetriebszustand;
+END_VAR
+VAR
+	nState : INT := 0;
+
+	fbRoboterAchseX : FB_Roboterachsensteuerung;
+	fbRoboterAchseY : FB_Roboterachsensteuerung;
+	fbRoboterAchseZ : FB_Roboterachsensteuerung;
+	fbRoboterAchseG : FB_Roboterachsensteuerung;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[fbRoboterAchseX(
+	bEnable:= bEnable, 
+	bExecute:= , 
+	rPosition:= , 
+	bRefSens:= IFC_HW.bManEndXmin, 
+	eState=> , 
+	ax:= IFC_HW.ax_ManX);
+
+fbRoboterAchseY(
+	bEnable:= bEnable, 
+	bExecute:= , 
+	rPosition:= , 
+	bRefSens:= IFC_HW.bManEndYmin, 
+	eState=> , 
+	ax:= IFC_HW.ax_ManY);
+	
+fbRoboterAchseZ(
+	bEnable:= bEnable, 
+	bExecute:= , 
+	rPosition:= , 
+	bRefSens:= IFC_HW.bManEndZmin, 
+	eState=> , 
+	ax:= IFC_HW.ax_ManZ);
+
+fbRoboterAchseG(
+	bEnable:= bEnable, 
+	bExecute:= , 
+	rPosition:= , 
+	bRefSens:= IFC_HW.bManEndGmin, 
+	eState=> , 
+	ax:= IFC_HW.ax_ManG);
+		
+CASE nState OF
+	0: // OFF
+	eState := eBetriebszustand.OFF;
+	
+	fbRoboterAchseX.bEnable := FALSE;
+	fbRoboterAchseY.bEnable := FALSE;
+	fbRoboterAchseZ.bEnable := FALSE;
+	fbRoboterAchseG.bEnable := FALSE;
+	
+	IF bEnable THEN
+		nState := 10;
+	END_IF
+	
+	10: // INIT
+	eState := eBetriebszustand.INIT;
+	
+	fbRoboterAchseX.bEnable := TRUE;
+	fbRoboterAchseY.bEnable := TRUE;
+	fbRoboterAchseZ.bEnable := TRUE;
+	fbRoboterAchseG.bEnable := TRUE;
+	
+	IF (fbRoboterAchseX.eState = eBetriebszustand.READY) AND (fbRoboterAchseY.eState = eBetriebszustand.READY) AND 
+	   (fbRoboterAchseZ.eState = eBetriebszustand.READY) AND (fbRoboterAchseG.eState = eBetriebszustand.READY) THEN   
+	   nState := 20;
+	END_IF
+	
+	20: // READY
+	eState := eBetriebszustand.READY;
+	
+	IF bExecute THEN
+		nState := 30;
+	END_IF
+	
+	30: // PROD-ZAchse hoch
+	eState := eBetriebszustand.PROD;
+	IFC_HW.bManBrakeZ := TRUE;
+	fbRoboterAchseZ.METH_MoveAX(GVL_PosKinematic.pZoff);
+	
+	IF fbRoboterAchseZ.eState = eBetriebszustand.DONE THEN
+		IFC_HW.bManBrakeZ := False;
+		nstate := 31;
+	END_IF
+	
+	31: // PROD-XYAchse bewegen
+	eState := eBetriebszustand.PROD;
+	fbRoboterAchseX.METH_MoveAX(rXpos);
+	fbRoboterAchseY.METH_MoveAX(rYpos);
+	
+	IF (fbRoboterAchseZ.eState = eBetriebszustand.DONE) AND (fbRoboterAchseZ.eState = eBetriebszustand.DONE) THEN
+		nstate := 32;
+	END_IF
+	
+	32: // PROD-ZAchse bewegen
+	eState := eBetriebszustand.PROD;
+	IFC_HW.bManBrakeZ := TRUE;
+	fbRoboterAchseZ.rPosition := rZpos;
+	fbRoboterAchseZ.bExecute := TRUE;
+	
+	IF fbRoboterAchseZ.eState = eBetriebszustand.DONE THEN
+		IFC_HW.bManBrakeZ := FALSE;
+		fbRoboterAchseZ.bExecute := FALSE;
+		nstate := 33;
+	END_IF
+	
+	33: // PROD-GAchse bewegen
+	eState := eBetriebszustand.PROD;
+	IF bGclose THEN
+		fbRoboterAchseG.METH_MoveAX(8.8);
+		IFC_HW.bGripperClosed := TRUE;
+	ELSE
+		fbRoboterAchseG.METH_MoveAX(7);
+		IFC_HW.bGripperClosed := FALSE;
+	END_IF
+		
+	IF fbRoboterAchseG.eState = eBetriebszustand.DONE THEN
+		nstate := 40;
+	END_IF
+	
+	40: // DONE
+	eState := eBetriebszustand.DONE;
+	
+	IF NOT bExecute THEN
+		nState := 20; // READY
+	END_IF
+END_CASE]]></ST>
+    </Implementation>
+    <LineIds Name="FB_Robotersteuerung">
+      <LineId Id="51" Count="0" />
+      <LineId Id="54" Count="4" />
+      <LineId Id="52" Count="0" />
+      <LineId Id="60" Count="6" />
+      <LineId Id="59" Count="0" />
+      <LineId Id="73" Count="0" />
+      <LineId Id="75" Count="6" />
+      <LineId Id="88" Count="0" />
+      <LineId Id="87" Count="0" />
+      <LineId Id="82" Count="4" />
+      <LineId Id="74" Count="0" />
+      <LineId Id="89" Count="1" />
+      <LineId Id="93" Count="0" />
+      <LineId Id="95" Count="0" />
+      <LineId Id="98" Count="4" />
+      <LineId Id="105" Count="0" />
+      <LineId Id="104" Count="0" />
+      <LineId Id="106" Count="5" />
+      <LineId Id="113" Count="2" />
+      <LineId Id="112" Count="0" />
+      <LineId Id="116" Count="1" />
+      <LineId Id="119" Count="0" />
+      <LineId Id="122" Count="0" />
+      <LineId Id="126" Count="7" />
+      <LineId Id="136" Count="1" />
+      <LineId Id="151" Count="0" />
+      <LineId Id="261" Count="0" />
+      <LineId Id="154" Count="1" />
+      <LineId Id="139" Count="0" />
+      <LineId Id="263" Count="0" />
+      <LineId Id="140" Count="2" />
+      <LineId Id="144" Count="0" />
+      <LineId Id="152" Count="0" />
+      <LineId Id="160" Count="0" />
+      <LineId Id="283" Count="0" />
+      <LineId Id="282" Count="0" />
+      <LineId Id="146" Count="1" />
+      <LineId Id="143" Count="0" />
+      <LineId Id="148" Count="1" />
+      <LineId Id="153" Count="0" />
+      <LineId Id="198" Count="0" />
+      <LineId Id="167" Count="4" />
+      <LineId Id="200" Count="0" />
+      <LineId Id="172" Count="0" />
+      <LineId Id="166" Count="0" />
+      <LineId Id="196" Count="1" />
+      <LineId Id="210" Count="0" />
+      <LineId Id="202" Count="0" />
+      <LineId Id="212" Count="0" />
+      <LineId Id="218" Count="0" />
+      <LineId Id="214" Count="1" />
+      <LineId Id="219" Count="0" />
+      <LineId Id="213" Count="0" />
+      <LineId Id="204" Count="0" />
+      <LineId Id="208" Count="0" />
+      <LineId Id="207" Count="0" />
+      <LineId Id="203" Count="0" />
+      <LineId Id="284" Count="4" />
+      <LineId Id="291" Count="1" />
+      <LineId Id="94" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
