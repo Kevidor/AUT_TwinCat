@@ -5,7 +5,7 @@
 VAR
 	fbAbfullmodul : FB_Abfullmodul;
 	fbStatusAmpel : FB_Ampelstatus;
-	fbRobotersteuerung: FB_Robotersteuerung;
+	fbRoboter : FB_Roboterablauf;
 	fbMqttClient : FB_MqttClient;
 END_VAR]]></Declaration>
     <Implementation>
@@ -23,14 +23,7 @@ fbStatusAmpel(
 	bLightYellow=> IFC_HW.bAmpelGelb, 
 	bLightGreen=> IFC_HW.bAmpelGrun);
 	
-fbRobotersteuerung(
-	bEnable:= IFC_HW.bEnable, 
-	bExecute:= IFC_HW.bExecute, 
-	rXpos:= , 
-	rYpos:= , 
-	rZpos:= , 
-	bGclose:= , 
-	eState=> );
+fbRoboter(bEnable:= IFC_HW.bEnable, bExecute:= IFC_HW.bBandSens4, eState=> );
 
 fbMqttClient();
 ]]></ST>
@@ -41,9 +34,7 @@ fbMqttClient();
       <LineId Id="367" Count="0" />
       <LineId Id="293" Count="3" />
       <LineId Id="250" Count="0" />
-      <LineId Id="425" Count="0" />
-      <LineId Id="517" Count="6" />
-      <LineId Id="426" Count="0" />
+      <LineId Id="425" Count="1" />
       <LineId Id="531" Count="0" />
       <LineId Id="529" Count="0" />
       <LineId Id="533" Count="0" />

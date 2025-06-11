@@ -7,6 +7,8 @@ VAR_INPUT
 	bEnable : BOOL;
 	bExecute : BOOL;
 	rPosition : REAL;
+	rVelocity : REAL := 30;
+	rAccelaration : REAL := 60;
 	bRefSens: BOOL;
 END_VAR
 VAR_OUTPUT
@@ -14,14 +16,14 @@ VAR_OUTPUT
 END_VAR
 VAR
 	nState : INT := 0;
-	rVelocity : REAL;
-	rAccelaration : REAL;
 	
 	// Motion Blöcke Tc2_Mc2
 	mcReset : MC_Reset;
 	mcPower : MC_Power;
-	mcAbsolute : MC_MoveAbsolute;
 	mcHome : MC_Home;
+	mcAbsolute : MC_MoveAbsolute;
+	
+	fbRTrig: R_TRIG;
 	
 END_VAR
 VAR_IN_OUT
@@ -30,7 +32,15 @@ END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[ax.ReadStatus();
-
+	
+mcReset(
+	Axis:= ax, 
+	Execute:= , 
+	Done=> , 
+	Busy=> , 
+	Error=> , 
+	ErrorID=> );
+	
 mcPower(
 	Axis:= ax, 
 	Enable:= bEnable, 
@@ -43,18 +53,43 @@ mcPower(
 	Busy=> , 
 	Error=> , 
 	ErrorID=> );
-	
-mcReset(
+
+mcHome(
 	Axis:= ax, 
 	Execute:= , 
+	Position:= , 
+	HomingMode:= , 
+	BufferMode:= , 
+	Options:= , 
+	bCalibrationCam:= NOT bRefSens, 
 	Done=> , 
 	Busy=> , 
+	Active=> , 
+	CommandAborted=> , 
+	Error=> , 
+	ErrorID=> );
+	
+mcAbsolute(
+	Axis:= ax, 
+	Execute:=, 
+	Position:= rPosition, 
+	Velocity:= rVelocity, 
+	Acceleration:= rAccelaration, 
+	Deceleration:= rAccelaration, 
+	Jerk:= , 
+	BufferMode:= , 
+	Options:= , 
+	Done=> , 
+	Busy=> , 
+	Active=> , 
+	CommandAborted=> , 
 	Error=> , 
 	ErrorID=> );
 
 CASE nState OF
 	0: // OFF
 	eState := eBetriebszustand.OFF;
+	
 	mcPower.Enable := TRUE;
 	mcReset.Execute := FALSE;
 	
@@ -86,110 +121,58 @@ CASE nState OF
 	
 	12: // INIT-Home
 	eState := eBetriebszustand.INIT;
-	METH_HomeAX();
+	
+	mcHome.Execute := TRUE;
 	
 	IF mcHome.Done THEN
+		mcHome.Execute := FALSE;
 		nState := 20; // READY
 	END_IF
 	
 	20: // READY
 	eState := eBetriebszustand.READY;
-			
+	
 	IF bExecute THEN
 		nState := 30; // PROD-Bewegen
 	END_IF
 	
 	30: // PROD-Bewegen
 	eState := eBetriebszustand.PROD;
-	METH_MoveAX(rPosition);
+	
+	mcAbsolute.Position := rPosition;
+	mcAbsolute.Execute := TRUE;
 	
 	IF mcAbsolute.Done THEN
+		mcAbsolute.Execute := False;
 		nState := 40; // DONE
 	END_IF
 	
 	40: // DONE
 	eState := eBetriebszustand.DONE;
+	
 	IF NOT bExecute THEN
 		nState := 20; // READY
 	END_IF
 	
 END_CASE]]></ST>
     </Implementation>
-    <Method Name="METH_HomeAX" Id="{b225659a-64ce-48e9-aa79-06a86061f090}">
-      <Declaration><![CDATA[METHOD METH_HomeAX : BOOL
-VAR_INPUT
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[mcHome(
-	Axis:= ax, 
-	Execute:= TRUE, 
-	Position:= , 
-	HomingMode:= , 
-	BufferMode:= , 
-	Options:= , 
-	bCalibrationCam:= NOT bRefSens, 
-	Done=> , 
-	Busy=> , 
-	Active=> , 
-	CommandAborted=> , 
-	Error=> , 
-	ErrorID=> );
-	
-	mcHome.Execute := TRUE;
-	
-IF mcHome.Done THEN
-	mcHome.Execute := FALSE;
-	METH_HomeAX := TRUE;
-	RETURN;
-END_IF]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="METH_MoveAX" Id="{c8e1fdde-de1d-4d39-bd8d-2a1d4606a164}">
-      <Declaration><![CDATA[METHOD METH_MoveAX : BOOL
-VAR_INPUT
-	rPosition : REAL;
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[mcAbsolute(
-	Axis:= ax, 
-	Execute:= TRUE, 
-	Position:= rPosition, 
-	Velocity:= 30, 
-	Acceleration:= 60, 
-	Deceleration:= 60, 
-	Jerk:= , 
-	BufferMode:= , 
-	Options:= , 
-	Done=> , 
-	Busy=> , 
-	Active=> , 
-	CommandAborted=> , 
-	Error=> , 
-	ErrorID=> );
-
-	mcAbsolute.Execute := True;
-	
-	IF mcAbsolute.Done THEN
-		mcAbsolute.Execute := FALSE;
-		METH_MoveAX := TRUE;
-		nState := 40;
-		RETURN;
-	END_IF]]></ST>
-      </Implementation>
-    </Method>
     <LineIds Name="FB_Roboterachsensteuerung">
-      <LineId Id="253" Count="1" />
+      <LineId Id="253" Count="0" />
+      <LineId Id="348" Count="6" />
+      <LineId Id="254" Count="0" />
+      <LineId Id="355" Count="0" />
       <LineId Id="69" Count="0" />
       <LineId Id="72" Count="9" />
       <LineId Id="70" Count="0" />
-      <LineId Id="82" Count="0" />
-      <LineId Id="84" Count="5" />
+      <LineId Id="356" Count="13" />
       <LineId Id="83" Count="0" />
+      <LineId Id="386" Count="0" />
+      <LineId Id="388" Count="14" />
+      <LineId Id="387" Count="0" />
       <LineId Id="281" Count="0" />
       <LineId Id="145" Count="1" />
       <LineId Id="163" Count="0" />
+      <LineId Id="410" Count="0" />
       <LineId Id="209" Count="1" />
       <LineId Id="194" Count="0" />
       <LineId Id="164" Count="2" />
@@ -217,50 +200,32 @@ END_VAR
       <LineId Id="154" Count="0" />
       <LineId Id="148" Count="0" />
       <LineId Id="198" Count="0" />
+      <LineId Id="409" Count="0" />
       <LineId Id="218" Count="0" />
       <LineId Id="283" Count="0" />
       <LineId Id="176" Count="0" />
+      <LineId Id="370" Count="0" />
       <LineId Id="205" Count="0" />
       <LineId Id="178" Count="0" />
       <LineId Id="155" Count="1" />
-      <LineId Id="199" Count="0" />
-      <LineId Id="179" Count="1" />
+      <LineId Id="405" Count="1" />
+      <LineId Id="180" Count="0" />
       <LineId Id="206" Count="0" />
       <LineId Id="182" Count="0" />
       <LineId Id="157" Count="1" />
       <LineId Id="200" Count="0" />
+      <LineId Id="411" Count="0" />
+      <LineId Id="408" Count="0" />
       <LineId Id="282" Count="0" />
       <LineId Id="222" Count="0" />
       <LineId Id="184" Count="0" />
+      <LineId Id="412" Count="0" />
       <LineId Id="207" Count="0" />
-      <LineId Id="186" Count="0" />
-      <LineId Id="161" Count="1" />
-      <LineId Id="201" Count="0" />
-      <LineId Id="189" Count="0" />
-      <LineId Id="208" Count="0" />
-      <LineId Id="191" Count="0" />
-      <LineId Id="187" Count="0" />
+      <LineId Id="310" Count="3" />
+      <LineId Id="317" Count="0" />
+      <LineId Id="314" Count="1" />
+      <LineId Id="186" Count="1" />
       <LineId Id="147" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_Roboterachsensteuerung.METH_HomeAX">
-      <LineId Id="6" Count="12" />
-      <LineId Id="5" Count="0" />
-      <LineId Id="25" Count="1" />
-      <LineId Id="19" Count="2" />
-      <LineId Id="24" Count="0" />
-      <LineId Id="23" Count="0" />
-      <LineId Id="22" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_Roboterachsensteuerung.METH_MoveAX">
-      <LineId Id="10" Count="14" />
-      <LineId Id="5" Count="0" />
-      <LineId Id="32" Count="0" />
-      <LineId Id="31" Count="0" />
-      <LineId Id="25" Count="2" />
-      <LineId Id="30" Count="0" />
-      <LineId Id="33" Count="0" />
-      <LineId Id="29" Count="0" />
-      <LineId Id="28" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>

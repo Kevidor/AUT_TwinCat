@@ -239,6 +239,8 @@ CASE nState OF
 	eState :=  eBetriebszustand.DONE;
 	nStation := 4;
 	
+	fbTransport.bExecute := False;
+	
 	IF NOT bExecute THEN
 		nState := 20; // READY
 	ELSIF nStation = 4 THEN
@@ -278,7 +280,9 @@ END_CASE]]></ST>
       <LineId Id="337" Count="2" />
       <LineId Id="204" Count="10" />
       <LineId Id="340" Count="2" />
-      <LineId Id="215" Count="14" />
+      <LineId Id="215" Count="13" />
+      <LineId Id="369" Count="1" />
+      <LineId Id="229" Count="0" />
       <LineId Id="344" Count="0" />
       <LineId Id="343" Count="0" />
       <LineId Id="230" Count="2" />

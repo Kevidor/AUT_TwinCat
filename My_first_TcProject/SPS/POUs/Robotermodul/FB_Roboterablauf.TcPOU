@@ -1,0 +1,272 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="FB_Roboterablauf" Id="{9caf7aa8-aeaf-40c6-b498-9ccabc82f656}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_Roboterablauf
+VAR_INPUT
+	bEnable : BOOL;
+	bExecute : BOOL;
+END_VAR
+VAR_OUTPUT
+	eState : eBetriebszustand;
+END_VAR
+VAR
+	nState : INT := 0;
+	nStation : INT := 1;
+	nFlaschenPos : INT := 1;
+	fbRobotersteuerung : FB_Robotersteuerung;
+	fbTon : TON;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[fbRobotersteuerung(
+	bEnable:= , 
+	bExecute:= , 
+	rXpos:= , 
+	rYpos:= , 
+	rZpos:= , 
+	bGclose:= , 
+	eState=> );
+	
+fbTon(IN:= , PT:= T#5S, Q=> , ET=> );
+	
+CASE nState OF
+	0: // OFF
+	eState := eBetriebszustand.OFF;
+	
+	fbRobotersteuerung.bEnable := FALSE;
+	
+	IF bEnable THEN
+		nState := 1;
+	END_IF
+	
+	1: // INIT
+	eState := eBetriebszustand.INIT;
+	
+	fbRobotersteuerung.bEnable := TRUE;
+	
+	IF fbRobotersteuerung.eState = eBetriebszustand.READY THEN
+		nState := 2;
+	END_IF
+	
+	2: // INIT - HomePos
+	eState := eBetriebszustand.INIT;
+	
+	fbRobotersteuerung.rXpos := GVL_PosKinematic.pXhome;
+	fbRobotersteuerung.rYpos := GVL_PosKinematic.pYhome;
+	fbRobotersteuerung.rZpos := GVL_PosKinematic.pYhome;
+	fbRobotersteuerung.bGclose := FALSE;
+	fbRobotersteuerung.bExecute := TRUE;
+	
+	IF fbRobotersteuerung.eState = eBetriebszustand.READY THEN
+		fbRobotersteuerung.bExecute := FALSE;
+		nState := 3;
+	END_IF
+	
+	3: // READY
+	eState := eBetriebszustand.READY;
+	
+	IF bExecute THEN
+		nState := 4;
+	END_IF
+	
+	4: // PROD - PickUp
+	eState := eBetriebszustand.PROD;
+	
+	fbRobotersteuerung.rXpos := GVL_PosKinematic.pXconv;
+	fbRobotersteuerung.rYpos := GVL_PosKinematic.pYconv;
+	fbRobotersteuerung.rZpos := GVL_PosKinematic.pZconv;
+	fbRobotersteuerung.bGclose := TRUE;
+	fbRobotersteuerung.bExecute := TRUE;
+	fbTon.IN := TRUE;
+	IF fbTon.Q THEN nStation := 2; END_IF
+	
+	IF fbRobotersteuerung.eState = eBetriebszustand.DONE
+		AND nStation = 2 THEN
+		fbTon.IN := FALSE;
+		fbRobotersteuerung.bExecute := FALSE;
+		nState := 5;
+	END_IF
+	
+	5: // PROD - Waage
+	eState := eBetriebszustand.PROD;
+	
+	fbRobotersteuerung.rXpos := GVL_PosKinematic.pXscale;
+	fbRobotersteuerung.rYpos := GVL_PosKinematic.pYscale;
+	fbRobotersteuerung.rZpos := GVL_PosKinematic.pZscale;
+	fbRobotersteuerung.bGclose := TRUE;
+	fbRobotersteuerung.bExecute := TRUE;
+	fbTon.IN := TRUE;
+	IF fbTon.Q THEN nStation := 3; END_IF
+	
+	IF fbRobotersteuerung.eState = eBetriebszustand.DONE 
+		AND nStation = 3 THEN
+		fbTon.IN := FALSE;
+		fbRobotersteuerung.bExecute := FALSE;
+		nState := 6;
+	END_IF
+	
+	6: // PROD - Ofen
+	eState := eBetriebszustand.PROD;
+	
+	fbRobotersteuerung.rXpos := GVL_PosKinematic.pXheat;
+	fbRobotersteuerung.rYpos := GVL_PosKinematic.pYheat;
+	fbRobotersteuerung.rZpos := GVL_PosKinematic.pZheat;
+	fbRobotersteuerung.bGclose := TRUE;
+	fbRobotersteuerung.bExecute := TRUE;
+	fbTon.IN := TRUE;
+	IF fbTon.Q THEN nStation := 4; END_IF
+	
+	IF fbRobotersteuerung.eState = eBetriebszustand.DONE 
+		AND nStation = 4 THEN
+		fbTon.IN := FALSE;
+		fbRobotersteuerung.bExecute := FALSE;
+		nState := 7;
+	END_IF
+	
+	7: // PROD - Place
+	eState := eBetriebszustand.PROD;
+	
+	CASE nFlaschenPos OF
+	1: fbRobotersteuerung.rXpos := GVL_PosKinematic.pX1stor;
+	2: fbRobotersteuerung.rXpos := GVL_PosKinematic.pX2stor;
+	3: fbRobotersteuerung.rXpos := GVL_PosKinematic.pX3stor;
+	4: fbRobotersteuerung.rXpos := GVL_PosKinematic.pX4stor;
+	END_CASE
+	fbRobotersteuerung.rYpos := GVL_PosKinematic.pYstor;
+	fbRobotersteuerung.rZpos := GVL_PosKinematic.pZstor;
+	fbRobotersteuerung.bGclose := FALSE;
+	fbRobotersteuerung.bExecute := TRUE;
+	fbTon.IN := TRUE;
+	IF fbTon.Q THEN nStation := 5; END_IF
+	
+	IF fbRobotersteuerung.eState = eBetriebszustand.DONE
+		AND nStation = 5 THEN
+		fbTon.IN := FALSE;
+		fbRobotersteuerung.bExecute := FALSE;
+		nFlaschenPos := (nFlaschenPos MOD 4) + 1;
+		nState := 8;
+	END_IF
+	
+	8: // INIT - HomePos
+	eState := eBetriebszustand.INIT;
+	
+	fbRobotersteuerung.rXpos := GVL_PosKinematic.pXhome;
+	fbRobotersteuerung.rYpos := GVL_PosKinematic.pYhome;
+	fbRobotersteuerung.rZpos := GVL_PosKinematic.pZhome;
+	fbRobotersteuerung.bGclose := FALSE;
+	fbRobotersteuerung.bExecute := TRUE;
+	fbTon.IN := TRUE;
+	IF fbTon.Q THEN nStation := 6; END_IF
+	
+	IF fbRobotersteuerung.eState = eBetriebszustand.DONE
+		AND nStation = 6 THEN
+		fbTon.IN := FALSE;
+		fbRobotersteuerung.bExecute := FALSE;
+		nState := 9;
+	END_IF
+	
+	9: // DONE
+	eState := eBetriebszustand.DONE;
+	
+	IF NOT bExecute	THEN
+		fbRobotersteuerung.bExecute := FALSE;
+		nState := 3;
+	END_IF
+	
+	
+END_CASE]]></ST>
+    </Implementation>
+    <LineIds Name="FB_Roboterablauf">
+      <LineId Id="16" Count="6" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="204" Count="1" />
+      <LineId Id="23" Count="2" />
+      <LineId Id="32" Count="0" />
+      <LineId Id="38" Count="0" />
+      <LineId Id="48" Count="1" />
+      <LineId Id="35" Count="2" />
+      <LineId Id="41" Count="0" />
+      <LineId Id="43" Count="2" />
+      <LineId Id="50" Count="1" />
+      <LineId Id="46" Count="1" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="158" Count="0" />
+      <LineId Id="160" Count="2" />
+      <LineId Id="167" Count="3" />
+      <LineId Id="163" Count="2" />
+      <LineId Id="171" Count="0" />
+      <LineId Id="166" Count="0" />
+      <LineId Id="159" Count="0" />
+      <LineId Id="107" Count="0" />
+      <LineId Id="54" Count="1" />
+      <LineId Id="110" Count="0" />
+      <LineId Id="57" Count="0" />
+      <LineId Id="115" Count="0" />
+      <LineId Id="53" Count="0" />
+      <LineId Id="34" Count="0" />
+      <LineId Id="63" Count="2" />
+      <LineId Id="101" Count="0" />
+      <LineId Id="103" Count="2" />
+      <LineId Id="116" Count="0" />
+      <LineId Id="206" Count="0" />
+      <LineId Id="191" Count="0" />
+      <LineId Id="102" Count="0" />
+      <LineId Id="66" Count="0" />
+      <LineId Id="190" Count="0" />
+      <LineId Id="208" Count="0" />
+      <LineId Id="117" Count="0" />
+      <LineId Id="67" Count="0" />
+      <LineId Id="61" Count="0" />
+      <LineId Id="68" Count="0" />
+      <LineId Id="70" Count="2" />
+      <LineId Id="124" Count="3" />
+      <LineId Id="122" Count="0" />
+      <LineId Id="197" Count="0" />
+      <LineId Id="211" Count="0" />
+      <LineId Id="123" Count="0" />
+      <LineId Id="73" Count="0" />
+      <LineId Id="199" Count="0" />
+      <LineId Id="212" Count="0" />
+      <LineId Id="118" Count="0" />
+      <LineId Id="74" Count="5" />
+      <LineId Id="130" Count="3" />
+      <LineId Id="128" Count="0" />
+      <LineId Id="213" Count="0" />
+      <LineId Id="198" Count="0" />
+      <LineId Id="129" Count="0" />
+      <LineId Id="80" Count="0" />
+      <LineId Id="200" Count="0" />
+      <LineId Id="214" Count="0" />
+      <LineId Id="119" Count="0" />
+      <LineId Id="81" Count="5" />
+      <LineId Id="143" Count="0" />
+      <LineId Id="146" Count="2" />
+      <LineId Id="144" Count="1" />
+      <LineId Id="137" Count="2" />
+      <LineId Id="134" Count="0" />
+      <LineId Id="215" Count="0" />
+      <LineId Id="202" Count="0" />
+      <LineId Id="135" Count="0" />
+      <LineId Id="87" Count="0" />
+      <LineId Id="201" Count="0" />
+      <LineId Id="216" Count="0" />
+      <LineId Id="120" Count="0" />
+      <LineId Id="221" Count="0" />
+      <LineId Id="88" Count="1" />
+      <LineId Id="173" Count="0" />
+      <LineId Id="175" Count="7" />
+      <LineId Id="218" Count="0" />
+      <LineId Id="217" Count="0" />
+      <LineId Id="183" Count="1" />
+      <LineId Id="219" Count="1" />
+      <LineId Id="185" Count="1" />
+      <LineId Id="174" Count="0" />
+      <LineId Id="92" Count="0" />
+      <LineId Id="94" Count="3" />
+      <LineId Id="121" Count="0" />
+      <LineId Id="98" Count="2" />
+      <LineId Id="93" Count="0" />
+      <LineId Id="26" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

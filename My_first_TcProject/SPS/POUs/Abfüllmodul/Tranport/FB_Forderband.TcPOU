@@ -125,7 +125,7 @@ CASE nState OF
 	30: // PROD-kontinuierliche Bewegung
 	eState := eBetriebszustand.PROD;
 	mcVelocity.Execute := TRUE;
-	mcVelocity.Velocity := 30;
+	mcVelocity.Velocity := 40;
 	mcVelocity.Acceleration := 60;
 	
 	IF bHalt THEN
@@ -136,7 +136,7 @@ CASE nState OF
 	eState := eBetriebszustand.PROD;
 	mcVelocity.Execute := FALSE;
 	mcHalt.Execute := TRUE;
-	mcHalt.Deceleration := 60;
+	mcHalt.Deceleration := 10;
 	
 	IF mcHalt.Done THEN
 		nState := 40;

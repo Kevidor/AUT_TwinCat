@@ -78,6 +78,9 @@
     <Compile Include="POUs\FUN_linear_Scale.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="POUs\Robotermodul\FB_Roboterablauf.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="POUs\Robotermodul\FB_Robotersteuerung.TcPOU">
       <SubType>Code</SubType>
     </Compile>
